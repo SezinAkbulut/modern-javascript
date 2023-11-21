@@ -164,6 +164,7 @@ inputField.addEventListener('keyup', function(event) {
 button.addEventListener('click', function() {
     const theNameOfTheCity = document.querySelector("#cityName").value;
     console.log("clicked")
+    
     fetch("http://api.weatherapi.com/v1/forecast.json?key=" + API.key + "&q=" + theNameOfTheCity + "&days=7&aqi=no&alerts=no")
     .then(response => response.json())
     .then(data => {
