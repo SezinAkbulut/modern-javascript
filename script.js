@@ -1,5 +1,5 @@
 // Check if script is read by the browser!
-console.log("script is running")
+/*console.log("script is running")
 // import data from different files
 import WMO_CODES from "./wmo_codes.js";
 import API from "./config.js";
@@ -263,6 +263,141 @@ button.addEventListener('click', function() {
         // alert("Hey are you sure you are not holding up your map upside down?")
     })
 })
+
+*/
+
+
+console.log("script is running");
+
+// Import data from different files
+
+import {WMO_CODES}  from "./wmo_codes.js";
+import API from "./config.js";
+
+// Get elements from the DOM
+const button = document.querySelector('#submit-search');
+const inputField = document.querySelector('#cityName');
+const cityNameContainer = document.querySelector('.city-info');
+const container = document.querySelector('.container');
+
+// Weekdays listed in the order used by the Date object 
+const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+// In case I want to switch to a different format:
+const weekdays2 = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+// Check if weekdays are correctly displayed
+console.log(weekdays);
+// check if API is correctly imported
+console.log(API)
+
+// Function to remove all children from an element
+const removeAllChildren = (element) => {
+  while (element.lastChild) {
+    element.removeChild(element.lastChild);
+  }
+};
+
+// Function to format the forecast date
+const formatForecastDate = (forecastDate, i) => {
+  const date = new Date();
+  const dayOfTheWeek = weekdays[(date.getDay() + i) % 7];
+  return dayOfTheWeek;
+};
+
+// Function to create a card element
+const createCard = (isMainCard, imageUrl, dayOfTheWeek, description, temperature) => {
+  const card = document.createElement('div');
+  card.classList.add('card', isMainCard ? 'main-card' : '');
+
+  const imageBox = document.createElement('div');
+  imageBox.classList.add('imgBx');
+  card.appendChild(imageBox);
+
+  const cardImg = document.createElement('img');
+  cardImg.src = imageUrl;
+  imageBox.appendChild(cardImg);
+
+  const contentBox = document.createElement('div');
+  contentBox.classList.add('contentBx');
+  card.appendChild(contentBox);
+
+  const cardHeader = document.createElement('h2');
+  cardHeader.innerHTML = dayOfTheWeek;
+  contentBox.appendChild(cardHeader);
+
+  const tempDescription = document.createElement('h4');
+  tempDescription.innerHTML = description;
+  contentBox.appendChild(tempDescription);
+
+  const currentTempBox = document.createElement('div');
+  currentTempBox.classList.add('color');
+  contentBox.appendChild(currentTempBox);
+
+  const currentTempHeader = document.createElement('h3');
+  currentTempHeader.innerHTML = 'Temp:';
+  currentTempBox.appendChild(currentTempHeader);
+
+  const currentTemp = document.createElement('span');
+  currentTemp.classList.add('current-temp');
+  currentTemp.innerHTML = temperature + '°C';
+  currentTempBox.appendChild(currentTemp);
+
+  return card;
+};
+
+// Event listener for input field keyup
+inputField.addEventListener('keyup', (event) => {
+  const cityName = inputField.value.trim();
+  if (event.code === 'Enter' && cityName !== '') {
+    fetchData(cityName);
+  }
+});
+
+// Event listener for button click
+button.addEventListener('click', () => {
+  const cityName = inputField.value.trim();
+  if (cityName !== '') {
+    fetchData(cityName);
+  }
+});
+
+// Function to fetch and display weather data
+const fetchData = (cityName) => {
+  fetch(`http://api.weatherapi.com/v1/forecast.json?key=${API.key}&q=${cityName}&days=7&aqi=no&alerts=no`)
+ 
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(data);
+
+      if (data.error) {
+        return alert('Hey, are you sure you are not holding up your map upside down?');
+      }
+
+      // Clear existing children in the container
+      removeAllChildren(container);
+
+      // Display the location in the browser as "City, Country"
+      cityNameContainer.textContent = `${data.location.name}, ${data.location.country}`;
+
+      // Create cards for each day (first 5 days) of the week
+      for (let i = 0; i < 5; i++) {
+        const imageUrl = data.forecast.forecastday[i].day.condition.icon;
+        const dayOfTheWeek = formatForecastDate(data.date, i);
+        const description = data.forecast.forecastday[i].day.condition.text;
+        const temperature = data.forecast.forecastday[i].day.avgtemp_c;
+
+        const isMainCard = i === 0;
+        const card = createCard(isMainCard, imageUrl, dayOfTheWeek, description, temperature);
+
+        // Append the card to the container
+        container.appendChild(card);
+      }
+    })
+    .catch((err) => {
+      // Handle fetch error
+      alert('An error occurred while fetching weather data.');
+    });
+};
 
 // This is a weather web application made for educational purposes. Please do not commercialize this project in any way whatsoever.
 // Made by a BeCode technical coach whom had a lot of fun making "bad code", and improved by the very learners of this class.
